@@ -8,13 +8,13 @@
 * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v2
 */
 
-require '/var/www/html/ygs/config.php'; // lots of library loaded, give $CFG and more useful variables, can uase all of moodle API from moodlelib.php dmllib.php, etc.""
+require '/var/www/html/moodle/config.php'; // lots of library loaded, give $CFG and more useful variables, can uase all of moodle API from moodlelib.php dmllib.php, etc.""
 
 // Enable the link to the quickedit module
 $quickedit_param = 1;
 
 // Enable the link for the provided histogram functionality - please read about the stored procedures 
-$histogram_param = 1;
+$histogram_param = 0;
 
 // enable averages on the top 
 $averages_param = 1;
