@@ -17,6 +17,7 @@ $COURSEIDPASSEDIN = $_SESSION['COURSE_ID'];
 
 require_login();
 $context = context_course::instance($COURSEIDPASSEDIN);
+
 if (! has_capability('gradereport/grader:view', $context, $USER->id)) {
         print_error('Insufficient privilege');
 }
@@ -64,7 +65,24 @@ for ($i = 0; $i < count($students); $i++){
                 //// grade item score  and grade item feedback stored according to id
                 $gitem=$grade_items[$j]['id'];
                 $userid = $students[$i]['id'];
-                $score = number_format((float)($ggtable[$gitem][$userid]->finalgrade),2,'.','');
+// CHECK TO SEE IF TYPE SCALE , then format accordingly
+                if ( $grade_items[$j]['gradetype'] == 2 ) { 
+    			$giforscale=grade_item::fetch(array('id'=>$gitem));
+			$score = grade_format_gradevalue($ggtable[$gitem][$userid]->finalgrade, $giforscale, true);
+                } else { 
+    			$giforscale=grade_item::fetch(array('id'=>$gitem));
+			$score = grade_format_gradevalue($ggtable[$gitem][$userid]->finalgrade, $giforscale, true);
+			if($score == "-"){
+				//in order to keep all grades as an float type, we replace null values with
+				//the number -99999.
+				//we restore this to a dash when displayed
+				$score = -99999;
+			}else{
+				$score = (float)($score);
+			}
+                	//$score = number_format((float)($ggtable[$gitem][$userid]->finalgrade),2,'.','');
+		}
+
                 $row[$grade_items[$j]['gid']] = $score;
                 $row[$gitem.'feedback'] = $ggtable[$gitem][$userid]->feedback;
 

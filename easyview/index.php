@@ -28,6 +28,7 @@ $CATEGORY_TOTALS = optional_param('categories',1,PARAM_INT);
 // RL: global declaration is only need if it is inside a function/class method   or if this code is include elsewhere inside a function/method.
 global $DB;
 $context = context_course::instance($COURSEIDPASSEDIN);
+
 if (! has_capability('gradereport/grader:view', $context, $USER->id)) {
         print_error('Insufficient privilege');
 }
@@ -112,7 +113,7 @@ $_SESSION['JSON_CATEGORIES'] = $categories;
 
 
 //get the title of the course
-$sql="SELECT mdl_course.shortname FROM mdl_course WHERE id=".$COURSEIDPASSEDIN.";";
+$sql="SELECT c.shortname FROM {course} as c WHERE id=".$COURSEIDPASSEDIN.";";
 $course_name = $DB->get_record_sql($sql)->shortname;
 
 $_SESSION['JSON_ITEMS_TOTAL']=count($array_final);
@@ -144,7 +145,7 @@ $_SESSION['GRADEBOOK_DATALOAD']= (int)time();
 		var averages_cond = <?php print("'".$averages_param."'");?>;
 		var AVERAGES_PARAM = [];
 		if(averages_cond == 1){
-			AVERAGES_PARAM =[{ftype: 'summary', dock:'top'}];
+			AVERAGES_PARAM =[{ftype: 'summary', dock:'bottom'}];
 		}
 		var RELOAD_WARNING = 0;
 		var STOP_CHECK_OTHERS =0;
@@ -178,6 +179,7 @@ $_SESSION['GRADEBOOK_DATALOAD']= (int)time();
 	</script>
 	<link rel-"stylesheet" type="text/css" href="easyview_style.css">
     	<script id="indexload" type="text/javascript" src="indexLoad.js"></script>
+
     <!-- The line below must be kept intact for Sencha Cmd to build your application -->
     <script type="text/javascript">var Ext=Ext||{};Ext.manifest="app";Ext=Ext||window.Ext||{};
 Ext.Boot=Ext.Boot||function(t){var l=document,p={disableCaching:/[?&](?:cache|disableCacheBuster)\b/i.test(location.search)||"file:"===location.href.substring(0,5)||/(^|[ ;])ext-cache=1/.test(l.cookie)?!1:!0,disableCachingParam:"_dc",loadDelay:!1,preserveScripts:!0,charset:void 0},u,q=[],n={},d=/\.css(?:\?|$)/i,m=/\/[^\/]*$/,e=l.createElement("a"),k="undefined"!==typeof window,v={browser:k,node:!k&&"function"===typeof require,phantom:"undefined"!==typeof phantom&&phantom.fs},w=[],g=0,s=0,h={loading:0,

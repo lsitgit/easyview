@@ -7,6 +7,8 @@
 */
 require 'config_path.php';
 
+require_once $CFG->dirroot.'/lib/gradelib.php';
+
 require_login();
 $context = context_course::instance($_SESSION['COURSE_ID']);
 if (! has_capability('gradereport/grader:view', $context, $USER->id)) {
@@ -15,39 +17,44 @@ if (! has_capability('gradereport/grader:view', $context, $USER->id)) {
 
 $sql = "
 SELECT
-    mdl_grade_grades.id,
-    mdl_user.firstname,
-    mdl_user.lastname,
-    mdl_grade_grades.finalgrade,
-    mdl_grade_items.itemname
+    gg.id,
+    u.firstname,
+    u.lastname,
+    gg.finalgrade,
+    gi.itemname,
+    gi.id as gradeitemid
 FROM
-    mdl_grade_grades
+    {grade_grades} AS gg
 INNER JOIN
-    mdl_user
+    {user} AS u
 ON
     (
-        mdl_grade_grades.userid = mdl_user.id)
+        gg.userid = u.id)
 INNER JOIN
-    mdl_grade_items
+    {grade_items} AS gi
 ON
     (
-        mdl_grade_grades.itemid = mdl_grade_items.id)
+        gg.itemid = gi.id)
 WHERE
-    mdl_grade_items.courseid = ".$_SESSION['COURSE_ID']."
-AND mdl_grade_grades.timemodified >= ".$_SESSION['GRADEBOOK_DATALOAD'];
+    gi.courseid = ".$_SESSION['COURSE_ID']."
+AND gg.timemodified >= ".$_SESSION['GRADEBOOK_DATALOAD'];
 
 //error_log("time on query: ".$_SESSION['GRADEBOOK_DATALOAD']);
 $others = $DB->get_records_sql($sql);
-//error_log($sql);
+error_log($sql);
 $others_array = array();
 foreach($others as $other){
 	$row['firstname'] = $other->firstname;
 	$row['lastname'] = $other->lastname;
-	$row['finalgrade'] = $other->finalgrade;
+           $giforscale=grade_item::fetch(array('id'=>$other->gradeitemid));
+           $score = grade_format_gradevalue($other->finalgrade, $giforscale, true);
+           $row['finalgrade'] = $score;
+	//$row['finalgrade'] = $other->finalgrade;
 	$row['itemname'] = $other->itemname;
 	array_push($others_array,json_encode($row));
 }
 $final = implode(',',$others_array);
+error_log($final);
 
 ################################
 ### BEGIN OUTPUT TO BROWSER

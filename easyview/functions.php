@@ -12,20 +12,24 @@
 //gets all grade item info for a given course/////
 //////////////////////////////////////////////////
 //returns array
+
+//require 'config_path.php';
+
+
 function get_grade_items($courseid,$DB){
         //query, returns all grade items for a given course
         $sql="  SELECT
-                mdl_grade_items.id, mdl_grade_items.categoryid,
-                mdl_grade_items.itemname, mdl_grade_items.itemtype,
-                mdl_grade_items.itemmodule, mdl_grade_items.iteminstance,
-                mdl_grade_items.itemnumber, mdl_grade_items.grademax,
-                mdl_grade_categories.id as cat_id, mdl_grade_categories.parent as cat_parent,
-                mdl_grade_categories.depth as cat_depth, mdl_grade_categories.path as cat_path,
-                mdl_grade_categories.fullname as cat_fullname
-        FROM mdl_grade_items
-        left JOIN mdl_grade_categories
-        ON (mdl_grade_items.categoryid = mdl_grade_categories.id)
-        WHERE mdl_grade_items.courseid = ".$courseid." ORDER BY mdl_grade_items.sortorder ASC ";
+                gi.id, gi.categoryid, gi.gradetype,
+                gi.itemname, gi.itemtype,
+                gi.itemmodule, gi.iteminstance,
+                gi.itemnumber, gi.grademax,
+                gc.id as cat_id, gc.parent as cat_parent,
+                gc.depth as cat_depth, gc.path as cat_path,
+                gc.fullname as cat_fullname
+        FROM {grade_items} as gi
+        left JOIN {grade_categories} as gc
+        ON (gi.categoryid = gc.id)
+        WHERE gi.courseid = ".$courseid." ORDER BY gi.sortorder ASC ";
 
         $grade_items = $DB->get_records_sql($sql);//runs sql query
         $array_grade_items = array();//will be populated with processed rows 
@@ -36,6 +40,7 @@ function get_grade_items($courseid,$DB){
                 //the gradeitem id will be used as the column header for each score
                 //for that grade item for each student
                 $row['id'] = (int)$grade_item->id;
+                $row['gradetype'] = (int)$grade_item->gradetype;
                 $row['gid'] = "g".(string)$grade_item->id;
                 //the line below is key
                 //we will store feedback for each grade item in a column identified by the 
@@ -44,7 +49,7 @@ function get_grade_items($courseid,$DB){
                 /////code in next few lines used to get the category name
                 //it will be saved in the grade item as well as in the $array_all_cats
                 if ($grade_item->categoryid != ""){
-                        $cat_name = $DB->get_record_sql("SELECT fullname FROM mdl_grade_categories WHERE id = ".$grade_item->categoryid)->fullname;
+                        $cat_name = $DB->get_record_sql("SELECT fullname FROM {grade_categories} as gc WHERE id = ".$grade_item->categoryid)->fullname;
                 }else{
                         $cat_name="";
                 }
@@ -71,8 +76,8 @@ function get_grade_items($courseid,$DB){
                         array_push($array_grade_items, ($row));
                 } else if ($grade_item->itemtype == "category"){
                         // NO icons for categories
-                        $row['name'] = ($DB->get_record_sql("SELECT fullname FROM mdl_grade_categories WHERE id = ".$grade_item->iteminstance)->fullname);
-                        //$row['name'] = preg_replace('(','[',$DB->get_record_sql("SELECT fullname FROM mdl_grade_categories WHERE id = ".$grade_item->iteminstance)->fullname);
+                        $row['name'] = ($DB->get_record_sql("SELECT fullname FROM {grade_categories} as gc  WHERE id = ".$grade_item->iteminstance)->fullname);
+                        //$row['name'] = preg_replace('(','[',$DB->get_record_sql("SELECT fullname FROM {grade_categories} as gc WHERE id = ".$grade_item->iteminstance)->fullname);
                         $row['locked'] = true;//used to lock column, categories are locked 
                         $row['type']='category';
                         array_push($array_grade_items, ($row));
@@ -94,28 +99,28 @@ function get_students($courseid,$DB){
         //raw query to get basic student info without grade item scores
 // TODO - maybe review this query, we just added a distinct  6.3.2014
         $sql = "SELECT
-                DISTINCT mdl_user.id, mdl_user.idnumber, mdl_course.shortname, mdl_user.firstname,
-                mdl_user.lastname, mdl_user.email
+                DISTINCT u.id, u.idnumber, c.shortname, u.firstname,
+                u.lastname, u.email
         
-                FROM mdl_user_enrolments
+                FROM {user_enrolments} as ue
         
-                INNER JOIN mdl_user
-                ON (mdl_user_enrolments.userid = mdl_user.id)
+                INNER JOIN {user} as u
+                ON (ue.userid = u.id)
         
-                INNER JOIN mdl_enrol
-                ON (mdl_user_enrolments.enrolid = mdl_enrol.id)
+                INNER JOIN {enrol} as e
+                ON (ue.enrolid = e.id)
         
-                INNER JOIN mdl_course
-                ON (mdl_enrol.courseid = mdl_course.id)
+                INNER JOIN {course} as c
+                ON (e.courseid = c.id)
 
-                WHERE mdl_course.id = ".$courseid." and mdl_user.id in (
-                        SELECT mdl_role_assignments.userid
-                        FROM mdl_context
-                        INNER JOIN mdl_course
-                        ON (mdl_context.instanceid = mdl_course.id)
-                        INNER JOIN mdl_role_assignments
-                        ON(mdl_context.id = mdl_role_assignments.contextid)
-                        WHERE mdl_course.id = ".$courseid." AND mdl_role_assignments.roleid = 5 
+                WHERE c.id = ".$courseid." and u.id in (
+                        SELECT tmpra.userid
+                        FROM {context} as tmpcontext
+                        INNER JOIN {course} as tmpcourse
+                        ON (tmpcontext.instanceid = tmpcourse.id)
+                        INNER JOIN {role_assignments} as tmpra
+                        ON(tmpcontext.id = tmpra.contextid)
+                        WHERE tmpcourse.id = ".$courseid." AND tmpra.roleid = 5
                 )";
 
         //query to get groups given a userid and courseno

@@ -14,22 +14,22 @@ if (! has_capability('gradereport/grader:view', $context, $USER->id)) {
 
 $sql = "
 SELECT DISTINCT
-    mdl_log.module,
-    mdl_log.action,
-    mdl_user.firstname,
-    mdl_user.lastname
+    l.module,
+    l.action,
+    u.firstname,
+    u.lastname
 FROM
-    mdl_log
+    {log} as l
 INNER JOIN
-    mdl_user
+    {user} as u
 ON
     (
-        mdl_log.userid = mdl_user.id) 
+        l.userid = u.id) 
 WHERE
-    mdl_log.course = ".$_SESSION['COURSE_ID']."
-AND mdl_log.module IN ('easyview', 'csvimport', 'quickedit', 'grader', 'grade') 
-AND mdl_log.time >= unix_timestamp(now()) - 300 
-AND mdl_log.userid != ".$USER->id;
+    l.course = ".$_SESSION['COURSE_ID']."
+AND l.module IN ('easyview', 'csvimport', 'quickedit', 'grader', 'grade') 
+AND l.time >= unix_timestamp(now()) - 300 
+AND l.userid != ".$USER->id;
 
 $others = $DB->get_records_sql($sql);
 $others_array = array();
