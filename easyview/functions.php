@@ -46,6 +46,8 @@ function get_grade_items($courseid,$DB){
                 //we will store feedback for each grade item in a column identified by the 
                 //grade item id concatenated with the string "feedback"
                 $row['feedback'] = (string)$grade_item->id."feedback";
+                $row['overridden'] = (string)$grade_item->id."overridden";
+                $row['ggid'] = (string)$grade_item->id."ggid";
                 /////code in next few lines used to get the category name
                 //it will be saved in the grade item as well as in the $array_all_cats
                 if ($grade_item->categoryid != ""){
@@ -53,7 +55,7 @@ function get_grade_items($courseid,$DB){
                 }else{
                         $cat_name="";
                 }
-                if($cat_name=="?"){$cat_name ="";}
+                if($cat_name=="?"){$cat_name ="Top Level Grade Item";}
                 $row['cat_name']=(str_replace("&","and",$cat_name));
                 array_push($array_all_cats,(str_replace("&","and",$cat_name)));
                 if ($grade_item->itemtype == "manual"){
@@ -85,7 +87,6 @@ function get_grade_items($courseid,$DB){
         }
         //all categories entry will be used in the drop down to wipe all category filters
         array_push($array_all_cats,'All grade items');
-        //array_push($array_all_cats,'no grade items');
         $array_all_cats = array_unique($array_all_cats);
         //exit();
         return (array($array_grade_items,$array_all_cats));

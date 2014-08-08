@@ -23,7 +23,7 @@ $_SESSION['COURSE_ID'] = $COURSEIDPASSEDIN;
 //if student details is 1, the details will show by default
 $STUDENT_DETAILS = optional_param('details',0,PARAM_INT);
 //if category totals is 1, the category totals will show by default
-$CATEGORY_TOTALS = optional_param('categories',1,PARAM_INT);
+$CATEGORY_TOTALS = optional_param('categories',0,PARAM_INT);
 
 // RL: global declaration is only need if it is inside a function/class method   or if this code is include elsewhere inside a function/method.
 global $DB;
@@ -51,16 +51,6 @@ $array_final    = array();
 //later on, the flag will be checked and if set to 1, a "no group" group
 //will be added to the drop down
 $nogroupflag    = 0;
-
-// first build table of grade scores...$uids=array();
-foreach ($students as $i => $any){ $uids[]=$students[$i]['id']; }
-$ggtable=array();
-for($j=0; $j<count($grade_items); $j++){
-    $gitem=$grade_items[$j]['id'];
-    $gi=grade_item::fetch(array('id'=>$gitem));
-    $ggtable[$gitem]= grade_grade::fetch_users_grades($gi,$uids,true);
-}
-
 
 //creates final json, loops through all students and each grade item to fill in matrix
 for ($i = 0; $i < count($students); $i++){
@@ -104,11 +94,15 @@ $courseCategories = array();
 //all categories is returned from get_grade_items (see above)
 foreach ($all_categories as $name) {
         $entry['name'] = $name;
+	$entry['visible'] = true;
         array_push($courseCategories, json_encode($entry));
         $id++;
 }
-
 $categories = implode(',', $courseCategories);
+/*used for category multifiltering
+array_pop($courseCategories);
+$category_status = implode(',',$courseCategories);
+*/
 $_SESSION['JSON_CATEGORIES'] = $categories;
 
 
@@ -117,13 +111,9 @@ $sql="SELECT c.shortname FROM {course} as c WHERE id=".$COURSEIDPASSEDIN.";";
 $course_name = $DB->get_record_sql($sql)->shortname;
 
 $_SESSION['JSON_ITEMS_TOTAL']=count($array_final);
-//$final = implode(',',$array_final);
-//$_SESSION['JSON_ITEMS'] = $final;
+
 session_start();
-//error_log("in index.php, chaning time");
 $_SESSION['GRADEBOOK_DATALOAD']= (int)time();
-//error_log("time on initial load: ".$_SESSION['GRADEBOOK_DATALOAD']);
-//print($_SESSION['GRADEBOOK_DATALOAD']);
 
 ?>
 <!DOCTYPE HTML>
@@ -136,8 +126,10 @@ $_SESSION['GRADEBOOK_DATALOAD']= (int)time();
         	var WROOT = <?php print("'".$CFG->wwwroot."'");?>;
         	var COURSEIDPASSEDIN = <?php print("'".$COURSEIDPASSEDIN."'");?>;
         	var COURSENAME = <?php print("'".$course_name."'");?>;
+                var MYHOME = WROOT+"/my/";
+                var COURSEHOME = WROOT+"/course/view.php?id="+COURSEIDPASSEDIN;
         	var BACKURL = WROOT+"/grade/report/grader/index.php?id="+COURSEIDPASSEDIN;
-        	var HELPURL = WROOT+"/redirect/gradebook.html";
+        	var HELPURL = <?php print("'".$help_url."'");?>;
 
 		var QUICKEDIT_PARAM = <?php print("'".$quickedit_param."'");?>;
 		var HISTOGRAM_PARAM = <?php print("'".$histogram_param."'");?>;
@@ -150,25 +142,27 @@ $_SESSION['GRADEBOOK_DATALOAD']= (int)time();
 		var RELOAD_WARNING = 0;
 		var STOP_CHECK_OTHERS =0;
 		var STOP_CHECK_DATA =0;
-		var HIDE_GRADEBOOK_ACCESS =<?php print ($hide_gradebook_access);?>;
-		var CHECK_ACCESS =<?php print ($check_access);?>;
-		var CHECK_DATA =<?php print ($check_data);?>;
-
- 
+		var DEFAULT_CHECK_GRADES_AND_OTHERS =<?php print ($default_check_grades_and_others);?>;
+		var ENABLE_CHECK_GRADES =<?php print ($enable_check_grades);?>;
+		var ENABLE_CHECK_OTHERS =<?php print ($enable_check_others);?>;
+		var CHECK_OTHERS_TIME =<?php print ($check_others_time);?>;
+		var CHECK_GRADES_TIME =<?php print ($check_grades_time);?>;
+		var SHOW_FEEDBACK_TOOLTIP =<?php print ($show_feedback_tooltip);?>;
 
         	//this php block grabs the grade_items array from the php above and creates a javascript array from it
         	//this will be used to create the columns and model
         	<?php
                 	$js_array = json_encode($grade_items);
                 	echo "var grade_items = ". $js_array . ";\n";
-			if ($STUDENT_DETAILS == 1){
+                	//echo "var CATEGORY_STATUS = [". $category_status . "];\n";//used for multi-category filtering
+			if ($STUDENT_DETAILS == 1){//set by optional url param, check above
 				echo "var hide_details = false;\n";	
 				echo "var DETAILS_TEXT = 'Hide Student Details';\n";	
 			}else{
 				echo "var hide_details = true;\n";	
 				echo "var DETAILS_TEXT = 'Show Student Details';\n";	
 			}
-			if ($CATEGORY_TOTALS == 1){
+			if ($CATEGORY_TOTALS == 1){//set by optional url param, check above
 				echo "var hide_categories = false;\n";	
 				echo "var CATEGORY_TEXT = 'Hide Category Totals';\n";	
 			}else{
@@ -177,9 +171,7 @@ $_SESSION['GRADEBOOK_DATALOAD']= (int)time();
 			}
         	?>
 	</script>
-	<link rel-"stylesheet" type="text/css" href="easyview_style.css">
     	<script id="indexload" type="text/javascript" src="indexLoad.js"></script>
-
     <!-- The line below must be kept intact for Sencha Cmd to build your application -->
     <script type="text/javascript">var Ext=Ext||{};Ext.manifest="app";Ext=Ext||window.Ext||{};
 Ext.Boot=Ext.Boot||function(t){var l=document,p={disableCaching:/[?&](?:cache|disableCacheBuster)\b/i.test(location.search)||"file:"===location.href.substring(0,5)||/(^|[ ;])ext-cache=1/.test(l.cookie)?!1:!0,disableCachingParam:"_dc",loadDelay:!1,preserveScripts:!0,charset:void 0},u,q=[],n={},d=/\.css(?:\?|$)/i,m=/\/[^\/]*$/,e=l.createElement("a"),k="undefined"!==typeof window,v={browser:k,node:!k&&"function"===typeof require,phantom:"undefined"!==typeof phantom&&phantom.fs},w=[],g=0,s=0,h={loading:0,

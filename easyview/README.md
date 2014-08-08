@@ -24,7 +24,8 @@ easyview/easyview/README.md and easyview/histogram/README.md.
 2. In the get_students() function in functions.php, on line 118, the
 roleid might be different for your system. It is meant to limit the search to
 only students.
-3. In the index.php file, there are javascript variables where you can
+3. The moodle DB prefixes in functions.php and other json.php files may be different for your moodle system 
+4. In the index.php file, there are javascript variables where you can
 set the "back" and "help" link of the application. You may want ot set these
 to suit your needs.
 

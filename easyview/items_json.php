@@ -85,6 +85,12 @@ for ($i = 0; $i < count($students); $i++){
 
                 $row[$grade_items[$j]['gid']] = $score;
                 $row[$gitem.'feedback'] = $ggtable[$gitem][$userid]->feedback;
+                $row[$gitem.'overridden'] = $ggtable[$gitem][$userid]->overridden;
+                $row[$gitem.'ggid'] = $ggtable[$gitem][$userid]->id;
+		/*
+		if($i==0&&$j==0){
+		print_r($ggtable[$gitem][$userid]);
+		}*/
 
         }
         array_push($array_final, json_encode($row));
