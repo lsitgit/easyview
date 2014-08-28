@@ -13,7 +13,31 @@ $context = context_course::instance($_SESSION['COURSE_ID']);
 if (! has_capability('gradereport/grader:view', $context, $USER->id)) {
         print_error('Insufficient privilege');
 }
+
+if ( $_SERVER['REQUEST_METHOD'] === 'PUT' ) {
+    $_PUT = array();
+    $_RAW = file_get_contents('php://input');
+    error_log('$RAW: '.$_RAW);
+    if ( !empty($_RAW) ) {
+        $data = json_decode($_RAW);
+        error_log(print_r($data,1));
+        $DB->update_record('grade_grades',$data);
+	}
+exit();
+}
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+    error_log('in gradegrade json file POST');
+    $_PUT = array();
+    $_RAW = file_get_contents('php://input');
+    error_log('$RAW: '.$_RAW);
+exit();
+}
+
+error_log('in gradegrade json file');
+
 $ggid = $_GET['ggid'];
+
+error_log('ggid is: '.$ggid);
 
 $sql = "
 SELECT
@@ -81,4 +105,5 @@ header("Expires: Fri, 01 Jul 2011 00:00:00 GMT"); // Date in the past
 header("Content-type: application/JSON; charset=utf-8");
 
 $status = empty($final) ? 'false' : 'true';
+error_log($final);
 ?>{"status": <?php echo $status; ?>, "gradegrade": [<?php echo $final; ?>]}

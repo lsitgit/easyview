@@ -51,18 +51,17 @@
         //// define static part of columns for the grid////
         ///////////////////////////////////////////////////
         var COLUMNS = [  
-			{ header: 'Name (filter) all students',         locked: true, width:150,dataIndex:'last', resizable:true,
+			{ header: 'Search/Sort',         locked: true, width:150,dataIndex:'last', resizable:true,
                                 renderer: function(v, cellValues, rec) {
-					/*
 					var url =  '<a href="'
 						+ WROOT
 						+ '/grade/report/user/index.php?userid='
 						+ rec.get('userid')
-						+ '&id='+COURSEIDPASSEDIN+'" target="_blank">'
+						+ '&id='+COURSEIDPASSEDIN+'" STYLE="text-decoration:none;" title="Click to view student User Report"><span class="smuserreportlink">'
 						+ rec.get('last').replace(/\\'/g,"'") + ', ' 
-						+ rec.get('first').replace(/\\'/g,"'")+'</a>';
-					return url;*/
-					return rec.get('last').replace(/\\'/g,"'") +", "+rec.get('first').replace(/\\'/g,"'") ;
+						+ rec.get('first').replace(/\\'/g,"'")+'</span></a>';
+					return url;
+					/*return rec.get('last').replace(/\\'/g,"'") +", "+rec.get('first').replace(/\\'/g,"'") ;*/
                                 },
                                 editor: {
                                         xtype: 'textfield'
@@ -94,25 +93,17 @@
                         { header: 'Email',      dataIndex: 'email',     locked: true,   hidden: hide_details, itemId:"info3" }, 
                         { header: 'Group(s)',      dataIndex: 'group',     locked: true,   hidden:hide_details,itemId:"info4" }, 
                         { header:'Edit',      xtype:'actioncolumn',   locked: true,   width:50,       align:'center', 
-                                items:[{        
-                                        icon: 'resources/table.png',
-                                        tooltip: 'User Report for Student',
-                                        handler: function(grid, rowIndex, colIndex) {
-                                                var url =WROOT+"/grade/report/user/index.php?"
-							+"userid="+grid.panel.store.data.items[rowIndex].data.userid
-							+"&id="+COURSEIDPASSEDIN;
-                                                var win = window.open(url, 'easygrade user report');
-                                                win.focus();
-                                        }
-				},{
+                                items:[        
+				{
                                         icon: 'resources/manual_item.svg',
-                                        tooltip: 'Quickedit for Student',
+                                        tooltip: 'Click the icon to grade student in Quick Edit',
                                         handler: function(grid, rowIndex, colIndex) {
                                                 var url =WROOT+"/grade/report/quick_edit/index.php?item=user&itemid="
 							+grid.panel.store.data.items[rowIndex].data.userid
 							+"&id="+COURSEIDPASSEDIN;
-                                                var win = window.open(url, 'easygrade quickedit');
-                                                win.focus();
+                                                /*var win = window.open(url, 'easygrade quickedit');
+                                                win.focus();*/
+						window.location.href = url;
 					}
                                 }],itemId:"info5",
                         },
@@ -135,7 +126,7 @@
         //pushing on dynamic parts of column and model////////
         //////////////////////////////////////////////////////
         
-        for (var i = 0; i < grade_items.length; i++){
+        for (var i = 0; i < grade_items.length; i++){//grade_items comes from index.php
                 
                 grade_items[i]['id'] = String(grade_items[i]['id']);
 		if(grade_items[i]['type']=='category' && hide_categories){
@@ -147,7 +138,17 @@
                 //column array points a gradeitem id to its readable name
                 var image ="";
                 if(grade_items[i]['type']!='category'){
-                        image = "<img id='"+grade_items[i]['gid']+"' class='header-icon' style='vertical-align:middle;margin-bottom:4px;' src='resources/manual_item.svg'/>";
+                        if (grade_items[i]['printicon'] == 'manual') {
+                        	image = "<img id='"+grade_items[i]['gid']+"' class='header-icon' style='vertical-align:middle;margin-bottom:4px;' src='resources/manual_item.svg'/>&nbsp;";
+			} else if (grade_items[i]['printicon'] == 'quiz') {
+                        	image = "<img id='"+grade_items[i]['gid']+"' class='header-icon' style='vertical-align:middle;margin-bottom:4px;' src='resources/quiz.svg'/>&nbsp;";
+			} else if (grade_items[i]['printicon'] == 'assign') {
+                        	image = "<img id='"+grade_items[i]['gid']+"' class='header-icon' style='vertical-align:middle;margin-bottom:4px;' src='resources/assign.svg'/>&nbsp;";
+			} else if (grade_items[i]['printicon'] == 'wwassignment') {
+                        	image = "<img id='"+grade_items[i]['gid']+"' class='header-icon' style='vertical-align:middle;margin-bottom:4px;' src='resources/wwassignment.gif'/>&nbsp;";
+			} else {
+                        	image = "<img id='"+grade_items[i]['gid']+"' class='header-icon' style='vertical-align:middle;margin-bottom:4px;' src='resources/preview.svg'/>&nbsp;";
+			}
 
 		}
                 COLUMNS.push({header: image+grade_items[i]['name'], 
@@ -165,7 +166,7 @@
                                         }
                                         return total/count;
                                 },
-                                tooltip: grade_items[i]['name'], 
+                                tooltip: 'Click the icon to grade in the activity<br> Click the text to sort column<br>Click the down arrow on the right of the column for more options<p>Grade item:  ' + grade_items[i]['name'], 
 				locked:grade_items[i]['locked'],//locked set in grade_grade_items function
 				itemId:(grade_items[i]['type']+i+grade_items[i]['cat_name']).replace(/["'()%\[\]{}\\=+\s&#@\^,\.!\$\*-]/g,''),
                                 renderer:function(value, metaData, record, rowIdx, colIdx, store, view){ 

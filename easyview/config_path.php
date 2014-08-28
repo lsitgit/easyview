@@ -15,7 +15,7 @@ $help_url = "/redirect/gradebook.html";
 $quickedit_param = 1;
 
 // Enable the link for the provided histogram functionality - please read about the stored procedures 
-$histogram_param = 1;
+$histogram_param = 0;
 
 // enable averages on the top 
 $averages_param = 1;
@@ -31,8 +31,8 @@ $show_feedback_tooltip = 0 ;
 $default_check_grades_and_others = 0;
 
 //control whether the user has the abilty to see others usage and grade item updates
-$enable_check_grades = 1;
-$enable_check_others = 1;
+$enable_check_grades = 0;
+$enable_check_others = 0;
 
 // Interval in seconds to check to see if data has changed in gradebook
 // query done by grade.grade timemodify change since last check or start up 

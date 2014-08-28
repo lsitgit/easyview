@@ -19,17 +19,27 @@
 function get_grade_items($courseid,$DB){
         //query, returns all grade items for a given course
         $sql="  SELECT
-                gi.id, gi.categoryid, gi.gradetype,
-                gi.itemname, gi.itemtype,
-                gi.itemmodule, gi.iteminstance,
-                gi.itemnumber, gi.grademax,
-                gc.id as cat_id, gc.parent as cat_parent,
-                gc.depth as cat_depth, gc.path as cat_path,
+                gi.id,
+		gi.categoryid,
+		gi.gradetype,
+ 		case when gisrt.itemtype = 'course' then gi.sortorder else gisrt.sortorder end as gc_srt,
+                gi.itemname,
+		gi.itemtype,
+		gi.sortorder,
+                gi.itemmodule,
+		gi.iteminstance,
+                gi.itemnumber,
+		gi.grademax,
+                gc.id as cat_id,
+		gc.parent as cat_parent,
+                gc.depth as cat_depth,
+		gc.path as cat_path,
                 gc.fullname as cat_fullname
         FROM {grade_items} as gi
         left JOIN {grade_categories} as gc
         ON (gi.categoryid = gc.id)
-        WHERE gi.courseid = ".$courseid." ORDER BY gi.sortorder ASC ";
+        LEFT JOIN mdl_grade_items gisrt ON gisrt.courseid = gi.courseid AND gisrt.iteminstance = gi.categoryid 
+        WHERE gi.courseid = ".$courseid." ORDER BY gc_srt, gi.sortorder; ";
 
         $grade_items = $DB->get_records_sql($sql);//runs sql query
         $array_grade_items = array();//will be populated with processed rows 
@@ -63,11 +73,22 @@ function get_grade_items($courseid,$DB){
                         $row['name'] = addslashes($grade_item->itemname);
                         $row['locked'] = false;//used to lock column, categories are locked 
                         $row['type']='manual';
+                        $row['printicon']='manual';
                         array_push($array_grade_items, ($row));
                 } else if ($grade_item->itemtype == "course"){
                         $row['name'] = 'Course Total';
                         $row['locked'] = true;//used to lock column, categories are locked 
                         $row['type']='category';
+                        array_push($array_grade_items, ($row));
+                } else if ($grade_item->itemtype == "blocks"){
+                        // will want icons for these
+                        //  if itemtype = 'quiz'  set icon =  pixmap(t/quiz); (or whatever it might be)
+                        $row['name'] = addslashes($grade_item->itemname);
+                        $row['locked'] = false;//used to lock column, categories are locked 
+// iclicker
+// although its really a block, but that doesn't make much sense to me right now
+                        $row['type']='mod';
+                        $row['printicon']=$grade_item->itemmodule;
                         array_push($array_grade_items, ($row));
                 } else if ($grade_item->itemtype == "mod"){
                         // will want icons for these
@@ -75,6 +96,7 @@ function get_grade_items($courseid,$DB){
                         $row['name'] = addslashes($grade_item->itemname);
                         $row['locked'] = false;//used to lock column, categories are locked 
                         $row['type']='mod';
+                        $row['printicon']=$grade_item->itemmodule;
                         array_push($array_grade_items, ($row));
                 } else if ($grade_item->itemtype == "category"){
                         // NO icons for categories
@@ -100,7 +122,7 @@ function get_students($courseid,$DB){
         //raw query to get basic student info without grade item scores
 // TODO - maybe review this query, we just added a distinct  6.3.2014
         $sql = "SELECT
-                DISTINCT u.id, u.idnumber, c.shortname, u.firstname,
+                DISTINCT u.id, u.idnumber, c.shortname, u.firstname, 
                 u.lastname, u.email
         
                 FROM {user_enrolments} as ue

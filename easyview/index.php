@@ -128,8 +128,13 @@ $_SESSION['GRADEBOOK_DATALOAD']= (int)time();
         	var COURSENAME = <?php print("'".$course_name."'");?>;
                 var MYHOME = WROOT+"/my/";
                 var COURSEHOME = WROOT+"/course/view.php?id="+COURSEIDPASSEDIN;
+        	var THISURL = WROOT+"/grade/report/easyview/easyview/index.php?id="+COURSEIDPASSEDIN;
         	var BACKURL = WROOT+"/grade/report/grader/index.php?id="+COURSEIDPASSEDIN;
         	var HELPURL = <?php print("'".$help_url."'");?>;
+         	var IMPORTURL = WROOT+"/grade/import/csv/index.php?id="+COURSEIDPASSEDIN;
+         	var EXPORTURL = WROOT+"/grade/export/egrade/index.php?id="+COURSEIDPASSEDIN;
+         	var SETUPURL = WROOT+"/grade/edit/tree/index.php?id="+COURSEIDPASSEDIN;
+         	var MYPREFURL = WROOT+"/grade/report/grader/preferences.php?id="+COURSEIDPASSEDIN;
 
 		var QUICKEDIT_PARAM = <?php print("'".$quickedit_param."'");?>;
 		var HISTOGRAM_PARAM = <?php print("'".$histogram_param."'");?>;
@@ -152,6 +157,7 @@ $_SESSION['GRADEBOOK_DATALOAD']= (int)time();
         	//this php block grabs the grade_items array from the php above and creates a javascript array from it
         	//this will be used to create the columns and model
         	<?php
+			//$grade_items will be used in indexLoad.php to build the columns/model definitions
                 	$js_array = json_encode($grade_items);
                 	echo "var grade_items = ". $js_array . ";\n";
                 	//echo "var CATEGORY_STATUS = [". $category_status . "];\n";//used for multi-category filtering
