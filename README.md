@@ -3,6 +3,8 @@
 Easyview is an excel type read only grader report
 which uses the Sencha EXT JS 5.0 framework. 
 
+![screenshot](easyview/resources/screenshot.png)
+
 ## Download
 
 
@@ -21,7 +23,7 @@ To configure the easyview grader report with your own Moodle 2.5 instance, simpl
 1. After installing the report,  you'll need to follow
 the installation instructions in two directories: 
 easyview/easyview/README.md and easyview/histogram/README.md.
-2. In the get_students() function in functions.php, on line 118, the
+2. In the get_students() function in [easyview/functions.php](easyview/functions.php), on [line 146](easyview/functions.php#L146), the
 roleid might be different for your system. It is meant to limit the search to
 only students.
 3. The moodle DB prefixes in functions.php and other json.php files may be different for your moodle system 
